@@ -1,9 +1,199 @@
 {% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Главная - Научная библиотека{% endblock %}
 
 {% block content %}
-<div class="jumbotron bg-light p-5 rounded mb-4">
-    <h1 class="display-4">Добро пожаловать в Научную библиотеку!</h1>
-    <p class="lead">Крупнейшая платформа для публикации научных работ</p>
+<!-- Hero секция -->
+<div class="hero-section">
+    <div class="container text-center">
+        <h1 class="display-4 fw-bold mb-4">Добро пожаловать в Научную библиотеку!</h1>
+        <p class="lead mb-4">Крупнейшая платформа для публикации и распространения научных работ</p>
+        {% if not user.is_authenticated %}
+            <a href="{% url 'accounts:register' %}" class="btn btn-light btn-lg">
+                <i class="bi bi-person-plus"></i> Присоединиться сейчас
+            </a>
+            <a href="{% url 'works:work_list' %}" class="btn btn-outline-light btn-lg ms-2">
+                <i class="bi bi-search"></i> Смотреть работы
+            </a>
+        {% else %}
+            <a href="{% url 'works:work_list' %}" class="btn btn-light btn-lg">
+                <i class="bi bi-journal"></i> Перейти к работам
+            </a>
+        {% endif %}
+    </div>
 </div>
 
+<div class="container">
+    <!-- Статистика -->
+    <div class="row text-center mb-5">
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <i class="bi bi-journal fs-1 text-primary"></i>
+                    <h3 class="mt-2">{{ total_works|default:"0" }}</h3>
+                    <p class="text-muted">Научных работ</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <i class="bi bi-people fs-1 text-success"></i>
+                    <h3 class="mt-2">{{ total_authors|default:"0" }}</h3>
+                    <p class="text-muted">Авторов</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <i class="bi bi-download fs-1 text-info"></i>
+                    <h3 class="mt-2">{{ total_downloads|default:"0" }}</h3>
+                    <p class="text-muted">Скачиваний</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <i class="bi bi-star fs-1 text-warning"></i>
+                    <h3 class="mt-2">{{ free_works|default:"0" }}</h3>
+                    <p class="text-muted">Бесплатных работ</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Топ-3 популярных работ -->
+        <div class="col-md-6 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white border-0">
+                    <h3 class="mb-0">
+                        <i class="bi bi-trophy-fill text-warning"></i>
+                        Топ-3 популярных работ
+                    </h3>
+                </div>
+                <div class="card-body">
+                    {% if top_works %}
+                        {% for work in top_works %}
+                            <div class="mb-3 p-3 border rounded hover-shadow">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h5 class="mb-1">
+                                            <a href="{% url 'works:work_detail' work.id %}" class="text-decoration-none">
+                                                {{ work.title }}
+                                            </a>
+                                        </h5>
+                                        <p class="text-muted small mb-1">
+                                            <i class="bi bi-person"></i> {{ work.author.username }}
+                                        </p>
+                                        <p class="mb-1">{{ work.description|truncatewords:15 }}</p>
+                                    </div>
+                                    <div class="text-end">
+                                        <span class="badge bg-primary">
+                                            <i class="bi bi-download"></i> {{ work.downloads_count }}
+                                        </span>
+                                        {% if work.is_free %}
+                                            <span class="badge bg-success">Бесплатно</span>
+                                        {% else %}
+                                            <span class="badge bg-warning">{{ work.price }} ₽</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted text-center">Пока нет работ</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Топ-3 популярных авторов -->
+        <div class="col-md-6 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white border-0">
+                    <h3 class="mb-0">
+                        <i class="bi bi-star-fill text-warning"></i>
+                        Топ-3 популярных авторов
+                    </h3>
+                </div>
+                <div class="card-body">
+                    {% if top_authors %}
+                        {% for author in top_authors %}
+                            <div class="mb-3 p-3 border rounded">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h5 class="mb-1">
+                                            <a href="{% url 'accounts:author_detail' author.id %}" class="text-decoration-none">
+                                                {{ author.username }}
+                                            </a>
+                                        </h5>
+                                        <p class="text-muted small mb-0">
+                                            <i class="bi bi-building"></i> {{ author.profile.institution|default:"Не указан" }}
+                                        </p>
+                                    </div>
+                                    <div class="text-end">
+                                        <span class="badge bg-info">
+                                            <i class="bi bi-journal"></i> {{ author.works.count }} работ
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted text-center">Пока нет авторов</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Последние добавленные работы -->
+    <div class="mt-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h3><i class="bi bi-clock-history"></i> Последние добавленные работы</h3>
+            <a href="{% url 'works:work_list' %}" class="btn btn-outline-primary">Все работы →</a>
+        </div>
+
+        <div class="row">
+            {% for work in recent_works %}
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100 border-0 shadow-sm card-hover">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h5 class="card-title">{{ work.title|truncatewords:8 }}</h5>
+                                {% if work.is_free %}
+                                    <span class="badge bg-success">Бесплатно</span>
+                                {% else %}
+                                    <span class="badge bg-warning">{{ work.price }} ₽</span>
+                                {% endif %}
+                            </div>
+                            <p class="card-text text-muted small">
+                                <i class="bi bi-person"></i> {{ work.author.username }}
+                            </p>
+                            <p class="card-text">{{ work.description|truncatewords:20 }}</p>
+                            <div class="d-flex justify-content-between align-items-center mt-3">
+                                <small class="text-muted">
+                                    <i class="bi bi-calendar"></i> {{ work.created_at|date:"d.m.Y" }}
+                                </small>
+                                <a href="{% url 'works:work_detail' work.id %}" class="btn btn-sm btn-primary">
+                                    Подробнее <i class="bi bi-arrow-right"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% empty %}
+                <div class="col-12">
+                    <div class="alert alert-info text-center">
+                        <i class="bi bi-info-circle"></i> Пока нет добавленных работ
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
 {% endblock %}

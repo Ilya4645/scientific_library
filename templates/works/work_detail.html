@@ -1,0 +1,161 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ work.title }} - Научная библиотека{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <!-- Основной контент -->
+        <div class="col-md-8">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'index' %}">Главная</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'works:work_list' %}">Работы</a></li>
+                    <li class="breadcrumb-item active">{{ work.title|truncatewords:5 }}</li>
+                </ol>
+            </nav>
+            
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <h1 class="display-5">{{ work.title }}</h1>
+                        {% if work.is_free %}
+                            <span class="badge bg-success badge-price">Бесплатно</span>
+                        {% else %}
+                            <span class="badge bg-warning badge-price">{{ work.price }} ₽</span>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <span class="text-muted">
+                            <i class="bi bi-person"></i> Автор: 
+                            <a href="{% url 'accounts:author_detail' work.author.id %}" class="text-decoration-none">
+                                {{ work.author.username }}
+                            </a>
+                        </span>
+                        <span class="text-muted ms-3">
+                            <i class="bi bi-calendar"></i> {{ work.published_at|date:"d.m.Y"|default:"На модерации" }}
+                        </span>
+                        <span class="text-muted ms-3">
+                            <i class="bi bi-download"></i> {{ work.downloads_count }} скачиваний
+                        </span>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <h4>Описание</h4>
+                        <p class="lead">{{ work.description|linebreaks }}</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Похожие работы -->
+            {% if similar_works %}
+            <div class="mt-4">
+                <h4><i class="bi bi-diagram-3"></i> Похожие работы</h4>
+                <div class="row">
+                    {% for similar in similar_works %}
+                        <div class="col-md-4 mb-3">
+                            <div class="card h-100 border-0 shadow-sm">
+                                <div class="card-body">
+                                    <h6 class="card-title">{{ similar.title|truncatewords:5 }}</h6>
+                                    <p class="small text-muted">{{ similar.author.username }}</p>
+                                    <a href="{% url 'works:work_detail' similar.id %}" class="btn btn-sm btn-outline-primary">
+                                        Смотреть
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        
+        <!-- Боковая панель -->
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm sidebar-card">
+                <div class="card-body text-center">
+                    {% if work.is_free %}
+                        <div class="alert alert-success mb-3">
+                            <i class="bi bi-info-circle"></i> Эта работа доступна бесплатно
+                        </div>
+                        {% if user.is_authenticated %}
+                            <a href="{% url 'works:download_work' work.id %}" class="btn btn-success btn-lg w-100">
+                                <i class="bi bi-download"></i> Скачать бесплатно
+                            </a>
+                        {% else %}
+                            <a href="{% url 'accounts:login' %}" class="btn btn-primary btn-lg w-100">
+                                <i class="bi bi-box-arrow-in-right"></i> Войдите для скачивания
+                            </a>
+                        {% endif %}
+                    {% else %}
+                        <div class="alert alert-warning mb-3">
+                            <strong>{{ work.price }} ₽</strong> - стоимость работы
+                        </div>
+                        
+                        {% if user.is_authenticated %}
+                            {% if has_purchased %}
+                                <a href="{% url 'works:download_work' work.id %}" class="btn btn-success btn-lg w-100 mb-2">
+                                    <i class="bi bi-download"></i> Скачать работу
+                                </a>
+                            {% else %}
+                                {% if user == work.author %}
+                                    <div class="alert alert-info">
+                                        <i class="bi bi-info-circle"></i> Вы автор этой работы
+                                    </div>
+                                {% else %}
+                                    <div class="alert alert-info">
+                                        Ваш баланс: {{ user.profile.balance }} ₽
+                                    </div>
+                                    <form method="post" action="{% url 'works:purchase_work' work.id %}">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-warning btn-lg w-100" 
+                                                {% if user.profile.balance < work.price %}disabled{% endif %}>
+                                            <i class="bi bi-cart-check"></i> Купить за {{ work.price }} ₽
+                                        </button>
+                                    </form>
+                                    {% if user.profile.balance < work.price %}
+                                        <div class="alert alert-danger mt-2 small">
+                                            Недостаточно средств. 
+                                            <a href="{% url 'accounts:top_up_balance' %}">Пополнить баланс</a>
+                                        </div>
+                                    {% endif %}
+                                {% endif %}
+                            {% endif %}
+                        {% else %}
+                            <a href="{% url 'accounts:login' %}" class="btn btn-primary btn-lg w-100">
+                                <i class="bi bi-box-arrow-in-right"></i> Войдите для покупки
+                            </a>
+                            <p class="text-muted mt-2 small">
+                                Или <a href="{% url 'accounts:register' %}">зарегистрируйтесь</a>, если у вас нет аккаунта
+                            </p>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Информация об авторе -->
+            <div class="card border-0 shadow-sm mt-4">
+                <div class="card-header bg-info text-white">
+                    <h6 class="mb-0"><i class="bi bi-person-badge"></i> Об авторе</h6>
+                </div>
+                <div class="card-body">
+                    <h5>{{ work.author.username }}</h5>
+                    {% if work.author.profile.institution %}
+                        <p class="text-muted">
+                            <i class="bi bi-building"></i> {{ work.author.profile.institution }}
+                        </p>
+                    {% endif %}
+                    {% if work.author.profile.bio %}
+                        <p>{{ work.author.profile.bio|truncatewords:20 }}</p>
+                    {% endif %}
+                    <a href="{% url 'accounts:author_detail' work.author.id %}" class="btn btn-outline-info btn-sm">
+                        Все работы автора
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

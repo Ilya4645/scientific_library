@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Публикация работы - Научная библиотека{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card border-0 shadow-lg">
+                <div class="card-header bg-gradient-primary text-white" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                    <h3 class="mb-0">
+                        <i class="bi bi-cloud-upload"></i> Публикация научной работы
+                    </h3>
+                </div>
+                <div class="card-body p-5">
+                    <div class="alert alert-info mb-4">
+                        <i class="bi bi-info-circle-fill"></i>
+                        <strong>Важно:</strong> После публикации работа будет отправлена на модерацию. 
+                        Одобренные работы появляются на сайте в течение 24 часов.
+                    </div>
+                    
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        {% if form.errors %}
+                            <div class="alert alert-danger">
+                                <i class="bi bi-exclamation-triangle"></i>
+                                Пожалуйста, исправьте ошибки в форме
+                            </div>
+                        {% endif %}
+                        
+                        <div class="mb-4">
+                            <label for="{{ form.title.id_for_label }}" class="form-label fw-bold">
+                                <i class="bi bi-tag"></i> Название работы
+                            </label>
+                            {{ form.title }}
+                            {% if form.title.errors %}
+                                <div class="text-danger small">{{ form.title.errors }}</div>
+                            {% endif %}
+                            <small class="text-muted">Минимум 5 символов</small>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="{{ form.description.id_for_label }}" class="form-label fw-bold">
+                                <i class="bi bi-text-paragraph"></i> Описание
+                            </label>
+                            {{ form.description }}
+                            {% if form.description.errors %}
+                                <div class="text-danger small">{{ form.description.errors }}</div>
+                            {% endif %}
+                            <small class="text-muted">Подробно опишите вашу научную работу</small>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="{{ form.file.id_for_label }}" class="form-label fw-bold">
+                                <i class="bi bi-file-pdf"></i> Файл работы
+                            </label>
+                            {{ form.file }}
+                            {% if form.file.errors %}
+                                <div class="text-danger small">{{ form.file.errors }}</div>
+                            {% endif %}
+                            <small class="text-muted">Поддерживаемые форматы: PDF, DOC, DOCX</small>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="{{ form.price.id_for_label }}" class="form-label fw-bold">
+                                <i class="bi bi-currency-ruble"></i> Цена
+                            </label>
+                            {{ form.price }}
+                            {% if form.price.errors %}
+                                <div class="text-danger small">{{ form.price.errors }}</div>
+                            {% endif %}
+                            <small class="text-muted">
+                                Установите 0 для бесплатной публикации. 
+                                При продаже вы получите 90% от стоимости
+                            </small>
+                        </div>
+                        
+                        <div class="alert alert-warning mb-4">
+                            <i class="bi bi-shield-check"></i>
+                            <strong>Правила публикации:</strong>
+                            <ul class="mb-0 mt-2">
+                                <li>Работа не должна нарушать авторские права</li>
+                                <li>Содержание должно соответствовать научной тематике</li>
+                                <li>Запрещены работы с вирусами и вредоносным кодом</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-success btn-lg">
+                                <i class="bi bi-cloud-arrow-up"></i> Опубликовать работу
+                            </button>
+                            <a href="{% url 'works:my_works' %}" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-left"></i> Назад к моим работам
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    form input, form select, form textarea {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+    }
+    form input:focus, form textarea:focus {
+        border-color: #667eea;
+        outline: none;
+        box-shadow: 0 0 5px rgba(102, 126, 234, 0.3);
+    }
+</style>
+{% endblock %}

@@ -23,6 +23,7 @@ from works import views as works_views
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('accounts/', include('accounts.urls')),
+    path('works/', include('works.urls', namespace='works')),
     path('', works_views.index, name='index'),
 ]
 

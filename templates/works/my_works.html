@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Мои работы - Научная библиотека{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="bi bi-folder"></i> Мои работы</h2>
+        {% if user.can_publish %}
+            <a href="{% url 'works:work_create' %}" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Новая работа
+            </a>
+        {% endif %}
+    </div>
+    
+    <div class="row">
+        {% for work in works %}
+            <div class="col-md-6 mb-4">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <h5 class="card-title">{{ work.title }}</h5>
+                            {% if work.moderation_status == 'approved' %}
+                                <span class="badge bg-success">Одобрено</span>
+                            {% elif work.moderation_status == 'rejected' %}
+                                <span class="badge bg-danger">Отклонено</span>
+                            {% else %}
+                                <span class="badge bg-warning">На модерации</span>
+                            {% endif %}
+                        </div>
+                        
+                        <p class="card-text text-muted small mb-2">
+                            <i class="bi bi-calendar"></i> {{ work.created_at|date:"d.m.Y" }}
+                            <span class="ms-3">
+                                <i class="bi bi-download"></i> {{ work.downloads_count }} скачиваний
+                            </span>
+                        </p>
+                        
+                        <p class="card-text">{{ work.description|truncatewords:30 }}</p>
+                        
+                        <div class="mb-2">
+                            {% if work.is_free %}
+                                <span class="badge bg-info">Бесплатно</span>
+                            {% else %}
+                                <span class="badge bg-warning">{{ work.price }} ₽</span>
+                            {% endif %}
+                            
+                            <span class="badge bg-secondary">
+                                Заработано: {{ work.purchases.aggregate.total|default:"0" }} ₽
+                            </span>
+                        </div>
+                        
+                        {% if work.moderation_status == 'rejected' and work.moderation_comment %}
+                            <div class="alert alert-danger mt-2">
+                                <strong>Причина отклонения:</strong><br>
+                                {{ work.moderation_comment }}
+                            </div>
+                        {% endif %}
+                        
+                        <div class="mt-3">
+                            <a href="{% url 'works:work_detail' work.id %}" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-eye"></i> Просмотр
+                            </a>
+                            
+                            {% if work.moderation_status == 'approved' %}
+                                <a href="{% url 'works:download_work' work.id %}" class="btn btn-sm btn-outline-success">
+                                    <i class="bi bi-download"></i> Скачать
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <div class="col-12">
+                <div class="alert alert-info text-center p-5">
+                    <i class="bi bi-folder fs-1"></i>
+                    <h4 class="mt-3">У вас пока нет работ</h4>
+                    {% if user.can_publish %}
+                        <a href="{% url 'works:work_create' %}" class="btn btn-primary mt-3">
+                            <i class="bi bi-plus-circle"></i> Опубликовать первую работу
+                        </a>
+                    {% else %}
+                        <p class="mt-3">
+                            <a href="{% url 'accounts:become_author' %}">Станьте автором</a>, 
+                            чтобы публиковать свои научные работы
+                        </p>
+                    {% endif %}
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
