@@ -10,4 +10,5 @@ urlpatterns = [
     path('my-works/', views.my_works, name='my_works'),
     path('<int:work_id>/download/', views.download_work, name='download_work'),
     path('<int:work_id>/purchase/', views.purchase_work, name='purchase_work'),
+    path('<int:work_id>/edit/', views.work_edit, name='work_edit'),
 ]

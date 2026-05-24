@@ -20,6 +20,12 @@ from django.conf import settings
 from django.conf.urls.static import static
 from works import views as works_views
 
+from . import views as custom_views
+
+handler404 = custom_views.custom_404
+handler403 = custom_views.custom_403
+handler500 = custom_views.custom_500
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('accounts/', include('accounts.urls')),
@@ -30,3 +36,4 @@ urlpatterns = [
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

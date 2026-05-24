@@ -9,6 +9,10 @@ from .forms import WorkCreateForm, WorkFilterForm
 from accounts.decorators import role_required
 from accounts.models import User
 import os
+import mimetypes
+from django.http import StreamingHttpResponse, HttpResponse, Http404
+from wsgiref.util import FileWrapper as FileWrapper2
+
 
 
 def index(request):
@@ -140,8 +144,18 @@ def work_list(request):
 
 
 def work_detail(request, work_id):
-    """Детальная страница работы"""
-    work = get_object_or_404(Work, id=work_id, moderation_status='approved')
+    """Детальная страница работы - только для одобренных работ"""
+    work = get_object_or_404(Work, id=work_id)
+
+    # Если работа не одобрена, показываем 404 или специальную страницу
+    if work.moderation_status != 'approved':
+        # Для автора работы показываем специальное сообщение
+        if request.user.is_authenticated and request.user == work.author:
+            messages.warning(request,
+                             f'Эта работа еще не опубликована. Текущий статус: {work.get_moderation_status_display()}')
+            return redirect('works:my_works')
+        else:
+            raise Http404("Работа не найдена или еще не опубликована")
 
     has_purchased = False
     if request.user.is_authenticated:
@@ -188,22 +202,51 @@ def my_works(request):
 
 @login_required
 def download_work(request, work_id):
+    """Скачивание работы - альтернативная версия"""
     work = get_object_or_404(Work, id=work_id, moderation_status='approved')
 
+    # Проверяем статус работы
+    if work.moderation_status != 'approved':
+        messages.error(request, 'Эта работа еще не опубликована и недоступна для скачивания')
+        return redirect('works:my_works')
+
+    # Проверка прав на скачивание
     if not work.can_download(request.user):
         messages.error(request, 'У вас нет прав на скачивание этой работы')
         return redirect('works:work_detail', work_id=work_id)
 
+    # Проверяем, существует ли файл
+    if not work.file:
+        messages.error(request, 'Файл работы не найден')
+        return redirect('works:work_detail', work_id=work_id)
+
+    # Получаем путь к файлу
+    file_path = work.file.path
+
+    # Проверяем, существует ли файл на диске
+    if not os.path.exists(file_path):
+        messages.error(request, 'Файл не найден на сервере')
+        return redirect('works:work_detail', work_id=work_id)
+
+    # Увеличиваем счетчик скачиваний
     work.downloads_count += 1
     work.save()
 
-    if work.file:
-        response = HttpResponse(work.file.read(), content_type='application/octet-stream')
-        response['Content-Disposition'] = f'attachment; filename="{work.file.name.split("/")[-1]}"'
-        return response
+    # Получаем оригинальное имя файла
+    original_filename = os.path.basename(work.file.name)
 
-    messages.error(request, 'Файл не найден')
-    return redirect('works:work_detail', work_id=work_id)
+    # Определяем MIME-тип файла
+    mime_type, encoding = mimetypes.guess_type(file_path)
+    if mime_type is None:
+        mime_type = 'application/octet-stream'
+
+    # Открываем файл и возвращаем его
+    wrapper = FileWrapper2(open(file_path, 'rb'))
+    response = StreamingHttpResponse(wrapper, content_type=mime_type)
+    response['Content-Disposition'] = f'attachment; filename="{original_filename}"'
+    response['Content-Length'] = os.path.getsize(file_path)
+
+    return response
 
 
 @login_required
@@ -239,3 +282,34 @@ def purchase_work(request, work_id):
             messages.error(request, str(e))
 
     return render(request, 'works/purchase_confirm.html', {'work': work})
+
+
+@login_required
+def work_edit(request, work_id):
+    """Редактирование отклоненной работы для повторной отправки"""
+    work = get_object_or_404(Work, id=work_id, author=request.user)
+
+    # Только отклоненные работы можно редактировать
+    if work.moderation_status != 'rejected':
+        messages.error(request, 'Редактирование доступно только для отклоненных работ')
+        return redirect('works:my_works')
+
+    if request.method == 'POST':
+        form = WorkCreateForm(request.POST, request.FILES, instance=work)
+        if form.is_valid():
+            edited_work = form.save(commit=False)
+            edited_work.moderation_status = 'pending'  # Снова отправляем на модерацию
+            edited_work.moderation_comment = ''  # Очищаем комментарий модератора
+            edited_work.save()
+            form.save_m2m()  # Сохраняем категории
+            messages.success(request, 'Работа отправлена на повторную модерацию!')
+            return redirect('works:my_works')
+    else:
+        form = WorkCreateForm(instance=work)
+
+    context = {
+        'form': form,
+        'work': work,
+        'is_editing': True
+    }
+    return render(request, 'works/work_edit.html', context)

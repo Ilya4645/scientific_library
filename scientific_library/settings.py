@@ -3,11 +3,9 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 load_dotenv()
-
 BASE_DIR = Path(__file__).resolve().parent.parent
-SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-default-key-for-dev')
-DEBUG = os.getenv('DEBUG', 'True') == 'True'
-
+SECRET_KEY = 'django-insecure-8x!q6@2k#9m&7n$5p%3r^1t*y(u)i*o-w=e+r+t+y*u*i*o-p'
+DEBUG = True
 ALLOWED_HOSTS = ['*']
 
 # Приложения
@@ -18,7 +16,6 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    # Мои приложения
     'accounts',
     'works',
     'moderation',
@@ -53,7 +50,9 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'scientific_library.wsgi.application'
-
+HANDLER404 = 'your_project.views.custom_404'
+HANDLER403 = 'your_project.views.custom_403'
+HANDLER500 = 'your_project.views.custom_500'
 # База данных
 if DEBUG:
     DATABASES = {
@@ -84,6 +83,11 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
+# Static files
+STATIC_URL = '/static/'
+STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 

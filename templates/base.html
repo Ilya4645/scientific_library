@@ -117,6 +117,13 @@
                                     </a>
                                 </li>
                                 {% endif %}
+                                {% if user.role == 'admin' %}
+                                <li>
+                                    <a class="dropdown-item" href="{% url 'admin:index' %}">
+                                        <i class="bi bi-star"></i> Панель администратора
+                                    </a>
+                                </li>
+                                {% endif %}
                                 <li><hr class="dropdown-divider"></li>
                                 <li>
                                     <form method="post" action="{% url 'accounts:logout' %}" style="display: inline;">

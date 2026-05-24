@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Страница не найдена - 404{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center min-vh-100 align-items-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="text-center">
+                <!-- Анимированная иконка -->
+                <div class="error-icon mb-4">
+                    <i class="bi bi-compass display-1 text-primary"></i>
+                    <div class="error-number">
+                        <span class="display-1 fw-bold text-primary">4</span>
+                        <span class="display-1 fw-bold text-primary">0</span>
+                        <span class="display-1 fw-bold text-primary">4</span>
+                    </div>
+                </div>
+                
+                <h1 class="display-4 fw-bold mb-3">Страница не найдена</h1>
+                <p class="lead text-muted mb-4">
+                    К сожалению, страница, которую вы ищете, не существует или была перемещена.
+                </p>
+                
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title">Возможные причины:</h5>
+                        <ul class="text-start">
+                            <li>Страница могла быть удалена</li>
+                            <li>Вы могли ввести неправильный адрес</li>
+                            <li>Работа еще не опубликована или находится на модерации</li>
+                            <li>У вас нет доступа к этой странице</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="d-flex gap-3 justify-content-center">
+                    <a href="{% url 'index' %}" class="btn btn-primary btn-lg">
+                        <i class="bi bi-house-door"></i> На главную
+                    </a>
+                    <a href="javascript:history.back()" class="btn btn-outline-secondary btn-lg">
+                        <i class="bi bi-arrow-left"></i> Вернуться назад
+                    </a>
+                </div>
+                
+                <!-- Поиск по сайту -->
+                <div class="mt-5">
+                    <h6 class="text-muted mb-3">Или попробуйте найти нужную работу:</h6>
+                    <form action="{% url 'works:work_list' %}" method="get" class="mx-auto" style="max-width: 400px;">
+                        <div class="input-group">
+                            <input type="text" name="q" class="form-control" placeholder="Поиск научных работ...">
+                            <button class="btn btn-outline-primary" type="submit">
+                                <i class="bi bi-search"></i> Найти
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .error-icon {
+        position: relative;
+        display: inline-block;
+    }
+    
+    .error-number {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        white-space: nowrap;
+    }
+    
+    .error-icon i {
+        font-size: 120px;
+        opacity: 0.3;
+        animation: spin 10s linear infinite;
+    }
+    
+    @keyframes spin {
+        from {
+            transform: rotate(0deg);
+        }
+        to {
+            transform: rotate(360deg);
+        }
+    }
+    
+    .min-vh-100 {
+        min-height: 70vh;
+    }
+    
+    .btn {
+        border-radius: 10px;
+        padding: 12px 30px;
+        transition: all 0.3s ease;
+    }
+    
+    .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+</style>
+{% endblock %}

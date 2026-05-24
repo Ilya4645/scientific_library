@@ -1,0 +1,147 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Редактирование работы - Научная библиотека{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card border-0 shadow-lg">
+                <div class="card-header bg-warning text-dark text-center py-3">
+                    <h3 class="mb-0">
+                        <i class="bi bi-pencil-square"></i> Редактирование работы
+                    </h3>
+                </div>
+                <div class="card-body p-5">
+                    <div class="alert alert-danger mb-4">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                        <strong>Внимание!</strong> Ваша работа была отклонена по следующим причинам:<br>
+                        {{ work.moderation_comment }}
+                        <hr>
+                        Пожалуйста, исправьте указанные замечания и отправьте работу на повторную модерацию.
+                    </div>
+                    
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        {% if form.errors %}
+                            <div class="alert alert-danger">
+                                <i class="bi bi-exclamation-triangle"></i>
+                                Пожалуйста, исправьте ошибки в форме
+                            </div>
+                        {% endif %}
+                        
+                        <div class="mb-4">
+                            <label for="{{ form.title.id_for_label }}" class="form-label fw-bold">
+                                <i class="bi bi-tag"></i> Название работы
+                            </label>
+                            {{ form.title }}
+                            {% if form.title.errors %}
+                                <div class="text-danger small">{{ form.title.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="{{ form.description.id_for_label }}" class="form-label fw-bold">
+                                <i class="bi bi-text-paragraph"></i> Описание
+                            </label>
+                            {{ form.description }}
+                            {% if form.description.errors %}
+                                <div class="text-danger small">{{ form.description.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">
+                                <i class="bi bi-tags"></i> Категории
+                            </label>
+                            {{ form.categories }}
+                            {% if form.categories.errors %}
+                                <div class="text-danger small">{{ form.categories.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="{{ form.file.id_for_label }}" class="form-label fw-bold">
+                                <i class="bi bi-file-pdf"></i> Файл работы
+                            </label>
+                            {% if work.file %}
+                                <p class="text-muted small">Текущий файл: {{ work.file.name }}</p>
+                            {% endif %}
+                            {{ form.file }}
+                            {% if form.file.errors %}
+                                <div class="text-danger small">{{ form.file.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="{{ form.price.id_for_label }}" class="form-label fw-bold">
+                                <i class="bi bi-currency-ruble"></i> Цена
+                            </label>
+                            {{ form.price }}
+                            {% if form.price.errors %}
+                                <div class="text-danger small">{{ form.price.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-warning btn-lg">
+                                <i class="bi bi-send"></i> Отправить на повторную модерацию
+                            </button>
+                            <a href="{% url 'works:my_works' %}" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-left"></i> Отмена
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    form input, form select, form textarea {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        font-size: 1rem;
+    }
+    
+    form input:focus, form textarea:focus, form select:focus {
+        border-color: #ffc107;
+        outline: none;
+        box-shadow: 0 0 5px rgba(255, 193, 7, 0.3);
+    }
+    
+    .category-checkbox-group {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        gap: 10px;
+        list-style: none;
+        padding: 0;
+    }
+    
+    .category-checkbox-group li {
+        margin: 0;
+    }
+    
+    .category-checkbox-group label {
+        display: block;
+        padding: 10px;
+        background: #f8f9fa;
+        border: 2px solid #e9ecef;
+        border-radius: 8px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .category-checkbox-group input:checked + label {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-color: #667eea;
+        color: white;
+    }
+</style>
+{% endblock %}
