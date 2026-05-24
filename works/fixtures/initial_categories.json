@@ -1,0 +1,62 @@
+[
+    {
+        "model": "works.category",
+        "pk": 1,
+        "fields": {
+            "name": "Математика",
+            "slug": "matematika",
+            "description": "Научные работы по математике",
+            "icon": "bi-calculator"
+        }
+    },
+    {
+        "model": "works.category",
+        "pk": 2,
+        "fields": {
+            "name": "Физика",
+            "slug": "fizika",
+            "description": "Научные работы по физике",
+            "icon": "bi-atom"
+        }
+    },
+    {
+        "model": "works.category",
+        "pk": 3,
+        "fields": {
+            "name": "Информатика",
+            "slug": "informatika",
+            "description": "Научные работы по информатике",
+            "icon": "bi-pc"
+        }
+    },
+    {
+        "model": "works.category",
+        "pk": 4,
+        "fields": {
+            "name": "Биология",
+            "slug": "biologiya",
+            "description": "Научные работы по биологии",
+            "icon": "bi-flower"
+        }
+    },
+    {
+        "model": "works.category",
+        "pk": 5,
+        "fields": {
+            "name": "Химия",
+            "slug": "himiya",
+            "description": "Научные работы по химии",
+            "icon": "bi-droplet"
+        }
+    },
+    {
+        "model": "works.category",
+        "pk": 6,
+        "fields": {
+            "name": "История",
+            "slug": "istoriya",
+            "description": "Научные работы по истории",
+            "icon": "bi-clock-history"
+        }
+    }
+]

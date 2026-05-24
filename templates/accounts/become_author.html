@@ -1,0 +1,205 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Стать автором - Научная библиотека{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-7">
+            <!-- Основная карточка -->
+            <div class="card border-0 shadow-lg overflow-hidden">
+                <!-- Шапка с градиентом -->
+                <div class="card-header text-white text-center py-4" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                    <i class="bi bi-star-fill fs-1"></i>
+                    <h2 class="mb-0 mt-2">Стать автором</h2>
+                    <p class="mb-0 mt-2 opacity-75">Публикуйте свои научные работы и зарабатывайте</p>
+                </div>
+                
+                <div class="card-body p-5">
+                    <!-- Преимущества -->
+                    <div class="row mb-5">
+                        <div class="col-md-6 mb-3">
+                            <div class="d-flex align-items-center">
+                                <div class="flex-shrink-0">
+                                    <div class="bg-success bg-opacity-10 rounded-circle p-3">
+                                        <i class="bi bi-journal-bookmark-fill text-success fs-4"></i>
+                                    </div>
+                                </div>
+                                <div class="ms-3">
+                                    <h6 class="mb-1">Публикация работ</h6>
+                                    <small class="text-muted">Размещайте свои научные труды</small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <div class="d-flex align-items-center">
+                                <div class="flex-shrink-0">
+                                    <div class="bg-info bg-opacity-10 rounded-circle p-3">
+                                        <i class="bi bi-currency-dollar text-info fs-4"></i>
+                                    </div>
+                                </div>
+                                <div class="ms-3">
+                                    <h6 class="mb-1">Заработок 90%</h6>
+                                    <small class="text-muted">Получайте 90% от каждой продажи</small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <div class="d-flex align-items-center">
+                                <div class="flex-shrink-0">
+                                    <div class="bg-warning bg-opacity-10 rounded-circle p-3">
+                                        <i class="bi bi-graph-up text-warning fs-4"></i>
+                                    </div>
+                                </div>
+                                <div class="ms-3">
+                                    <h6 class="mb-1">Статистика</h6>
+                                    <small class="text-muted">Отслеживайте скачивания и доход</small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <div class="d-flex align-items-center">
+                                <div class="flex-shrink-0">
+                                    <div class="bg-primary bg-opacity-10 rounded-circle p-3">
+                                        <i class="bi bi-award text-primary fs-4"></i>
+                                    </div>
+                                </div>
+                                <div class="ms-3">
+                                    <h6 class="mb-1">Признание</h6>
+                                    <small class="text-muted">Повышайте свой научный авторитет</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Важная информация -->
+                    <div class="alert alert-warning border-2 mb-4">
+                        <div class="d-flex">
+                            <div class="flex-shrink-0">
+                                <i class="bi bi-exclamation-triangle-fill fs-4"></i>
+                            </div>
+                            <div class="ms-3">
+                                <h6 class="mb-1">Важная информация</h6>
+                                <ul class="mb-0 small">
+                                    <li>Каждая работа проходит модерацию перед публикацией</li>
+                                    <li>Запрещено публиковать работы, нарушающие авторские права</li>
+                                    <li>Вы получаете 90% от стоимости каждой проданной работы</li>
+                                    <li>10% идет на поддержку и развитие платформы</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Комиссия -->
+                    <div class="card bg-light mb-4">
+                        <div class="card-body">
+                            <div class="row text-center">
+                                <div class="col-6 border-end">
+                                    <h3 class="text-success mb-0">90%</h3>
+                                    <small class="text-muted">Вам</small>
+                                </div>
+                                <div class="col-6">
+                                    <h3 class="text-primary mb-0">10%</h3>
+                                    <small class="text-muted">Платформе</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Форма подтверждения -->
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="form-check mb-4">
+                            <input class="form-check-input" type="checkbox" id="agreeTerms" required>
+                            <label class="form-check-label" for="agreeTerms">
+                                Я согласен с <a href="#" data-bs-toggle="modal" data-bs-target="#termsModal">правилами платформы</a>
+                                и подтверждаю, что буду публиковать только оригинальные работы
+                            </label>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-warning btn-lg" id="submitBtn" disabled>
+                                <i class="bi bi-star"></i> Стать автором
+                            </button>
+                            <a href="{% url 'accounts:profile' %}" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-left"></i> Отмена
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно с правилами -->
+<div class="modal fade" id="termsModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Правила платформы для авторов</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <h6>1. Авторские права</h6>
+                <p class="small">Вы подтверждаете, что являетесь автором публикуемых работ или имеете законное право на их распространение.</p>
+                
+                <h6>2. Содержание работ</h6>
+                <p class="small">Работы должны соответствовать научной тематике и не содержать незаконный, оскорбительный или вредоносный контент.</p>
+                
+                <h6>3. Модерация</h6>
+                <p class="small">Все работы проходят проверку модератором. Администрация оставляет за собой право отклонить работу без объяснения причин.</p>
+                
+                <h6>4. Комиссия</h6>
+                <p class="small">При продаже работы вы получаете 90% от стоимости, 10% удерживается в пользу платформы.</p>
+                
+                <h6>5. Выплаты</h6>
+                <p class="small">Заработанные средства зачисляются на ваш внутренний баланс. Вывод средств производится по запросу.</p>
+                
+                <h6>6. Ответственность</h6>
+                <p class="small">Вы несете полную ответственность за содержание публикуемых работ.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Я ознакомлен</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .form-check-input:checked {
+        background-color: #ffc107;
+        border-color: #ffc107;
+    }
+    
+    .btn-warning {
+        background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
+        border: none;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    
+    .btn-warning:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(255, 193, 7, 0.3);
+    }
+    
+    .card-header {
+        border-bottom: none;
+    }
+</style>
+
+<script>
+    // Активация кнопки при согласии с правилами
+    const agreeCheckbox = document.getElementById('agreeTerms');
+    const submitBtn = document.getElementById('submitBtn');
+    
+    agreeCheckbox.addEventListener('change', function() {
+        submitBtn.disabled = !this.checked;
+    });
+</script>
+{% endblock %}

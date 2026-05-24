@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% block title %}Подтверждение покупки - Научная библиотека{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center mt-5">
+        <div class="col-md-6">
+            <div class="card shadow-lg border-0">
+                <div class="card-header bg-warning text-dark text-center py-3">
+                    <h3><i class="bi bi-cart-check"></i> Подтверждение покупки</h3>
+                </div>
+                <div class="card-body p-5">
+                    <h4 class="text-center mb-4">{{ work.title }}</h4>
+                    
+                    <div class="alert alert-info">
+                        <p class="mb-0"><strong>Стоимость:</strong> {{ work.price }} ₽</p>
+                        <p class="mb-0 mt-2"><strong>Ваш баланс:</strong> {{ user.profile.balance }} ₽</p>
+                        <p class="mb-0 mt-2 text-success"><strong>После покупки:</strong> {{ user.profile.balance|add:work.price|floatformat:2 }} ₽</p>
+                    </div>
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-success btn-lg w-100">
+                            <i class="bi bi-check-circle"></i> Подтвердить покупку
+                        </button>
+                        <a href="{% url 'works:work_detail' work.id %}" class="btn btn-outline-secondary w-100 mt-2">
+                            <i class="bi bi-arrow-left"></i> Отмена
+                        </a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

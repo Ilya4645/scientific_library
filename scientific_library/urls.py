@@ -25,6 +25,7 @@ urlpatterns = [
     path('accounts/', include('accounts.urls')),
     path('works/', include('works.urls', namespace='works')),
     path('', works_views.index, name='index'),
+    path('moderation/', include('moderation.urls')),
 ]
 
 if settings.DEBUG:

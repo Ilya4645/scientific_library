@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Модерация - Научная библиотека{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="bi bi-shield-check"></i> Очередь модерации</h2>
+        <span class="badge bg-warning">{{ works.count }} работ на проверке</span>
+    </div>
+    
+    {% if works %}
+        {% for work in works %}
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">{{ work.title }}</h5>
+                        <span class="badge bg-secondary">{{ work.created_at|date:"d.m.Y H:i" }}</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <p><strong>Автор:</strong> {{ work.author.username }}</p>
+                            <p><strong>Описание:</strong></p>
+                            <p class="text-muted">{{ work.description|linebreaks }}</p>
+                            
+                            {% if work.price == 0 %}
+                                <p><span class="badge bg-info">Бесплатная работа</span></p>
+                            {% else %}
+                                <p><strong>Цена:</strong> {{ work.price }} ₽</p>
+                            {% endif %}
+                            
+                            {% if work.file %}
+                                <p>
+                                    <a href="{{ work.file.url }}" class="btn btn-sm btn-outline-primary" target="_blank">
+                                        <i class="bi bi-file-earmark"></i> Просмотреть файл
+                                    </a>
+                                </p>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <form method="post" action="{% url 'moderation:moderate_work' work.id %}">
+                                        {% csrf_token %}
+                                        
+                                        <div class="mb-3">
+                                            <label class="form-label">Решение</label>
+                                            <select name="moderation_status" class="form-select">
+                                                <option value="approved">Одобрить</option>
+                                                <option value="rejected">Отклонить</option>
+                                            </select>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <label class="form-label">Комментарий (для автора)</label>
+                                            <textarea name="moderation_comment" class="form-control" rows="3"></textarea>
+                                        </div>
+                                        
+                                        <button type="submit" class="btn btn-primary w-100">
+                                            <i class="bi bi-check-circle"></i> Отправить решение
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    {% else %}
+        <div class="alert alert-success text-center p-5">
+            <i class="bi bi-check-circle-fill fs-1"></i>
+            <h4 class="mt-3">Нет работ на модерации</h4>
+            <p class="text-muted">Все работы проверены</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

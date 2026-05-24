@@ -89,10 +89,17 @@ def author_detail(request, user_id):
 
 @login_required
 def become_author(request):
+    """Страница становления автором"""
+    # Если пользователь уже автор
+    if request.user.role in ['author', 'moderator', 'admin']:
+        messages.info(request, 'Вы уже являетесь автором!')
+        return redirect('accounts:profile')
+
     if request.method == 'POST':
+        # Проверяем, что пользователь согласился с правилами
         request.user.role = 'author'
         request.user.save()
         messages.success(request, 'Поздравляем! Теперь вы можете публиковать свои научные работы!')
-        return redirect('accounts:profile')
+        return redirect('works:work_create')  # Перенаправляем на создание первой работы
 
     return render(request, 'accounts/become_author.html')

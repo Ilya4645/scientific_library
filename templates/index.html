@@ -25,45 +25,30 @@
 </div>
 
 <div class="container">
-    <!-- Статистика -->
-    <div class="row text-center mb-5">
-        <div class="col-md-3">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body">
-                    <i class="bi bi-journal fs-1 text-primary"></i>
-                    <h3 class="mt-2">{{ total_works|default:"0" }}</h3>
-                    <p class="text-muted">Научных работ</p>
+    <!-- Категории -->
+    {% if categories %}
+    <div class="categories-section mb-5">
+        <h3 class="text-center mb-4">
+            <i class="bi bi-grid-3x3-gap-fill"></i> Популярные категории
+        </h3>
+        <div class="row g-3">
+            {% for category in categories %}
+                <div class="col-md-2 col-6">
+                    <a href="{% url 'works:work_list' %}?category={{ category.slug }}"
+                       class="category-card text-decoration-none">
+                        <div class="category-card-inner">
+                            <div class="category-icon">
+                                <i class="bi {{ category.icon|default:'bi-tag' }} fs-1"></i>
+                            </div>
+                            <h6 class="category-name">{{ category.name }}</h6>
+                            <span class="category-work-count">{{ category.works_count }} работ</span>
+                        </div>
+                    </a>
                 </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body">
-                    <i class="bi bi-people fs-1 text-success"></i>
-                    <h3 class="mt-2">{{ total_authors|default:"0" }}</h3>
-                    <p class="text-muted">Авторов</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body">
-                    <i class="bi bi-download fs-1 text-info"></i>
-                    <h3 class="mt-2">{{ total_downloads|default:"0" }}</h3>
-                    <p class="text-muted">Скачиваний</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body">
-                    <i class="bi bi-star fs-1 text-warning"></i>
-                    <h3 class="mt-2">{{ free_works|default:"0" }}</h3>
-                    <p class="text-muted">Бесплатных работ</p>
-                </div>
-            </div>
+            {% endfor %}
         </div>
     </div>
+    {% endif %}
 
     <div class="row">
         <!-- Топ-3 популярных работ -->
@@ -89,6 +74,14 @@
                                         <p class="text-muted small mb-1">
                                             <i class="bi bi-person"></i> {{ work.author.username }}
                                         </p>
+                                        <!-- Категории работы в топе -->
+                                        {% if work.categories.all %}
+                                            <div class="mt-1">
+                                                {% for cat in work.categories.all|slice:":2" %}
+                                                    <span class="mini-category">{{ cat.name }}</span>
+                                                {% endfor %}
+                                            </div>
+                                        {% endif %}
                                         <p class="mb-1">{{ work.description|truncatewords:15 }}</p>
                                     </div>
                                     <div class="text-end">
@@ -137,7 +130,7 @@
                                     </div>
                                     <div class="text-end">
                                         <span class="badge bg-info">
-                                            <i class="bi bi-journal"></i> {{ author.works.count }} работ
+                                            <i class="bi bi-download"></i> {{ author.get_total_downloads }} скачиваний
                                         </span>
                                     </div>
                                 </div>
@@ -171,6 +164,16 @@
                                     <span class="badge bg-warning">{{ work.price }} ₽</span>
                                 {% endif %}
                             </div>
+
+                            <!-- Категории в последних работах -->
+                            {% if work.categories.all %}
+                                <div class="mb-2">
+                                    {% for category in work.categories.all|slice:":2" %}
+                                        <span class="category-chip-sm">{{ category.name }}</span>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+
                             <p class="card-text text-muted small">
                                 <i class="bi bi-person"></i> {{ work.author.username }}
                             </p>
@@ -196,4 +199,93 @@
         </div>
     </div>
 </div>
+
+<style>
+    /* Стили для категорий на главной */
+    .categories-section {
+        padding: 20px 0;
+    }
+
+    .category-card {
+        display: block;
+        text-align: center;
+        transition: all 0.3s ease;
+    }
+
+    .category-card-inner {
+        background: white;
+        border-radius: 15px;
+        padding: 20px 10px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        transition: all 0.3s ease;
+    }
+
+    .category-card:hover .category-card-inner {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(102, 126, 234, 0.2);
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    .category-card:hover .category-icon i,
+    .category-card:hover .category-name,
+    .category-card:hover .category-work-count {
+        color: white !important;
+    }
+
+    .category-icon i {
+        font-size: 2rem;
+        color: #667eea;
+        transition: all 0.3s ease;
+    }
+
+    .category-name {
+        margin-top: 10px;
+        margin-bottom: 5px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: #333;
+    }
+
+    .category-work-count {
+        font-size: 0.7rem;
+        color: #6c757d;
+    }
+
+    .mini-category {
+        display: inline-block;
+        padding: 2px 8px;
+        background: #f0f0f0;
+        border-radius: 10px;
+        font-size: 0.7rem;
+        color: #667eea;
+        margin-right: 5px;
+    }
+
+    .category-chip-sm {
+        display: inline-block;
+        padding: 2px 8px;
+        background: linear-gradient(135deg, #667eea20 0%, #764ba220 100%);
+        border-radius: 10px;
+        font-size: 0.7rem;
+        color: #667eea;
+        margin-right: 5px;
+    }
+
+    .hero-section {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 60px 0;
+        margin-bottom: 40px;
+        border-radius: 10px;
+    }
+
+    .card-hover {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .card-hover:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    }
+</style>
 {% endblock %}

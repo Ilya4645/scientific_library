@@ -1,17 +1,32 @@
 from django import forms
-from .models import Work
+from .models import Work, Category
 
 
 class WorkCreateForm(forms.ModelForm):
+    categories = forms.ModelMultipleChoiceField(
+        queryset=Category.objects.all(),
+        widget=forms.CheckboxSelectMultiple(attrs={'class': 'category-checkbox-group'}),
+        required=False,
+        label="Категории"
+    )
+
     class Meta:
         model = Work
-        fields = ['title', 'description', 'file', 'price']
+        fields = ['title', 'description', 'categories', 'file', 'price']
         widgets = {
-            'title': forms.TextInput(attrs={'class': 'form-control'}),
-            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 5}),
-            'file': forms.FileInput(attrs={'class': 'form-control'}),
-            'price': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'title': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Введите название работы'}),
+            'description': forms.Textarea(
+                attrs={'class': 'form-control', 'rows': 5, 'placeholder': 'Опишите вашу научную работу'}),
+            'file': forms.ClearableFileInput(attrs={'class': 'form-control'}),
+            'price': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'placeholder': '0 - бесплатно'}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['title'].widget.attrs.update({'class': 'form-control'})
+        self.fields['description'].widget.attrs.update({'class': 'form-control'})
+        self.fields['file'].widget.attrs.update({'class': 'form-control'})
+        self.fields['price'].widget.attrs.update({'class': 'form-control'})
 
     def clean_title(self):
         title = self.cleaned_data['title']
@@ -34,3 +49,32 @@ class WorkCreateForm(forms.ModelForm):
         if price and price > 0 and not file:
             raise forms.ValidationError('Для платной работы необходимо загрузить файл')
         return cleaned_data
+
+
+class WorkFilterForm(forms.Form):
+    """Форма для фильтрации работ"""
+    search = forms.CharField(
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Поиск по названию, описанию или автору...'
+        })
+    )
+    price = forms.ChoiceField(
+        required=False,
+        choices=[('', 'Все'), ('free', 'Бесплатные'), ('paid', 'Платные')],
+        widget=forms.Select(attrs={'class': 'form-select'})
+    )
+    categories = forms.ModelMultipleChoiceField(
+        queryset=Category.objects.all(),
+        required=False,
+        widget=forms.CheckboxSelectMultiple(attrs={'class': 'category-filter-group'})
+    )
+
+class WorkModerationForm(forms.ModelForm):
+    class Meta:
+        model = Work
+        fields = ['moderation_status', 'moderation_comment']
+        widgets = {
+            'moderation_comment': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+        }

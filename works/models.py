@@ -4,7 +4,42 @@ from django.conf import settings
 from decimal import Decimal
 
 
+class Category(models.Model):
+    """
+    Категория научных работ (связь многие-ко-многим с Work)
+    """
+    name = models.CharField(max_length=100, unique=True, verbose_name="Название категории")
+    slug = models.SlugField(max_length=100, unique=True, verbose_name="URL-метка")
+    description = models.TextField(blank=True, verbose_name="Описание категории")
+    icon = models.CharField(max_length=50, blank=True, help_text="Иконка из Bootstrap Icons", verbose_name="Иконка")
+    created_at = models.DateTimeField(auto_now_add=True, null=True)
+
+    class Meta:
+        verbose_name = "Категория"
+        verbose_name_plural = "Категории"
+        ordering = ['name']
+
+    def __str__(self):
+        return self.name
+
+    def clean(self):
+        """Кастомная валидация категории"""
+        if len(self.name) < 2:
+            raise ValidationError({'name': 'Название категории должно содержать минимум 2 символа'})
+        if not self.slug.isalnum() and '-' not in self.slug:
+            raise ValidationError({'slug': 'Slug может содержать только буквы, цифры и дефисы'})
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            from django.utils.text import slugify
+            self.slug = slugify(self.name)
+        super().save(*args, **kwargs)
+
+
 class Work(models.Model):
+    """
+    Научная работа (связь 1:N с автором, N:N с категориями)
+    """
     STATUS_CHOICES = [
         ('pending', 'На модерации'),
         ('approved', 'Одобрено'),
@@ -19,7 +54,13 @@ class Work(models.Model):
         related_name='works',
         verbose_name="Автор"
     )
-    file = models.FileField(upload_to='works/', verbose_name="Файл работы", null=True, blank=True)
+    categories = models.ManyToManyField(
+        Category,
+        related_name='works',
+        blank=True,
+        verbose_name="Категории"
+    )
+    file = models.FileField(upload_to='works/%Y/%m/%d/', verbose_name="Файл работы", null=True, blank=True)
     price = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name="Цена")
     moderation_status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     moderation_comment = models.TextField(blank=True)
@@ -27,6 +68,11 @@ class Work(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     published_at = models.DateTimeField(null=True, blank=True)
     downloads_count = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = "Работа"
+        verbose_name_plural = "Работы"
 
     def __str__(self):
         return f"{self.title} - {self.author.username}"
@@ -56,8 +102,15 @@ class Work(models.Model):
         from .models import Purchase
         return Purchase.objects.filter(user=user, work=self).exists()
 
+    def get_categories_list(self):
+        """Возвращает список категорий для отображения"""
+        return self.categories.all()
+
 
 class Purchase(models.Model):
+    """
+    Покупка работы (связь N:N между User и Work)
+    """
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='purchases')
     work = models.ForeignKey(Work, on_delete=models.CASCADE, related_name='purchases')
     amount = models.DecimalField(max_digits=10, decimal_places=2)
@@ -67,6 +120,8 @@ class Purchase(models.Model):
 
     class Meta:
         unique_together = ['user', 'work']
+        verbose_name = "Покупка"
+        verbose_name_plural = "Покупки"
 
     def __str__(self):
         return f"{self.user.username} купил {self.work.title}"

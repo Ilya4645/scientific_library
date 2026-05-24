@@ -13,31 +13,45 @@
                     <h5 class="mb-0"><i class="bi bi-funnel"></i> Фильтры</h5>
                 </div>
                 <div class="card-body">
-                    <form method="get">
+                    <form method="get" id="filter-form">
+                        <!-- Поиск -->
                         <div class="mb-3">
                             <label class="form-label">Поиск</label>
-                            <input type="text" name="q" class="form-control" placeholder="Название работы..." 
-                                   value="{{ search_query }}">
+                            {{ form.search }}
                         </div>
-                        
+
+                        <!-- Фильтр по цене -->
                         <div class="mb-3">
                             <label class="form-label">Цена</label>
-                            <select name="price" class="form-select">
-                                <option value="">Все</option>
-                                <option value="free" {% if price_filter == 'free' %}selected{% endif %}>
-                                    Бесплатные
-                                </option>
-                                <option value="paid" {% if price_filter == 'paid' %}selected{% endif %}>
-                                    Платные
-                                </option>
-                            </select>
+                            {{ form.price }}
                         </div>
-                        
+
+                        <!-- КРАСИВЫЙ ФИЛЬТР ПО КАТЕГОРИЯМ -->
+                        <div class="mb-3">
+                            <label class="form-label">
+                                <i class="bi bi-tags"></i> Категории
+                            </label>
+                            <div class="categories-filter-list">
+                                {% for category in categories %}
+                                    <label class="category-filter-item">
+                                        <input type="checkbox" name="categories" value="{{ category.id }}"
+                                               {% if category.id in selected_categories %}checked{% endif %}
+                                               onchange="this.form.submit()">
+                                        <div class="category-filter-content">
+                                            <i class="bi {{ category.icon|default:'bi-tag' }}"></i>
+                                            <span>{{ category.name }}</span>
+                                            <span class="badge">{{ category.works_count }}</span>
+                                        </div>
+                                    </label>
+                                {% endfor %}
+                            </div>
+                        </div>
+
                         <button type="submit" class="btn btn-primary w-100">
                             <i class="bi bi-search"></i> Применить
                         </button>
-                        
-                        {% if search_query or price_filter %}
+
+                        {% if search_query or price_filter or selected_categories %}
                             <a href="{% url 'works:work_list' %}" class="btn btn-secondary w-100 mt-2">
                                 <i class="bi bi-eraser"></i> Сбросить
                             </a>
@@ -46,14 +60,14 @@
                 </div>
             </div>
         </div>
-        
+
         <!-- Список работ -->
         <div class="col-md-9">
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h2>Научные работы</h2>
-                <span class="badge bg-secondary">{{ works.count }} работ найдено</span>
+                <span class="badge bg-secondary">{{ works.paginator.count }} работ найдено</span>
             </div>
-            
+
             <div class="row">
                 {% for work in works %}
                     <div class="col-md-6 col-lg-4 mb-4">
@@ -67,13 +81,28 @@
                                         <span class="badge bg-warning">{{ work.price }} ₽</span>
                                     {% endif %}
                                 </div>
-                                
+
+                                <!-- Категории в карточке -->
+                                {% if work.categories.all %}
+                                    <div class="mb-2">
+                                        {% for category in work.categories.all|slice:":2" %}
+                                            <span class="category-chip">
+                                                <i class="bi {{ category.icon|default:'bi-tag' }}"></i>
+                                                {{ category.name }}
+                                            </span>
+                                        {% endfor %}
+                                        {% if work.categories.count > 2 %}
+                                            <span class="category-chip-more">+{{ work.categories.count|add:"-2" }}</span>
+                                        {% endif %}
+                                    </div>
+                                {% endif %}
+
                                 <p class="card-text text-muted small">
                                     <i class="bi bi-person"></i> {{ work.author.username }}
                                 </p>
-                                
+
                                 <p class="card-text">{{ work.description|truncatewords:15 }}</p>
-                                
+
                                 <div class="d-flex justify-content-between align-items-center mt-3">
                                     <small class="text-muted">
                                         <i class="bi bi-download"></i> {{ work.downloads_count }}
@@ -99,26 +128,32 @@
                     </div>
                 {% endfor %}
             </div>
-            
+
             <!-- Пагинация -->
             {% if works.has_other_pages %}
                 <nav aria-label="Page navigation" class="mt-4">
                     <ul class="pagination justify-content-center">
                         {% if works.has_previous %}
                             <li class="page-item">
-                                <a class="page-link" href="?page={{ works.previous_page_number }}">←</a>
+                                <a class="page-link" href="?page={{ works.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                    ←
+                                </a>
                             </li>
                         {% endif %}
-                        
+
                         {% for num in works.paginator.page_range %}
                             <li class="page-item {% if works.number == num %}active{% endif %}">
-                                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                                <a class="page-link" href="?page={{ num }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                    {{ num }}
+                                </a>
                             </li>
                         {% endfor %}
-                        
+
                         {% if works.has_next %}
                             <li class="page-item">
-                                <a class="page-link" href="?page={{ works.next_page_number }}">→</a>
+                                <a class="page-link" href="?page={{ works.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                    →
+                                </a>
                             </li>
                         {% endif %}
                     </ul>
@@ -127,4 +162,165 @@
         </div>
     </div>
 </div>
+
+<style>
+    /* Стили для фильтра категорий */
+    .categories-filter-list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        max-height: 300px;
+        overflow-y: auto;
+        padding-right: 5px;
+    }
+
+    .categories-filter-list::-webkit-scrollbar {
+        width: 5px;
+    }
+
+    .categories-filter-list::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 5px;
+    }
+
+    .categories-filter-list::-webkit-scrollbar-thumb {
+        background: #667eea;
+        border-radius: 5px;
+    }
+
+    .category-filter-item {
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .category-filter-item input {
+        display: none;
+    }
+
+    .category-filter-content {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 12px;
+        background: #f8f9fa;
+        border: 1px solid #e9ecef;
+        border-radius: 8px;
+        transition: all 0.2s ease;
+    }
+
+    .category-filter-content i {
+        font-size: 1rem;
+        color: #6c757d;
+        width: 20px;
+    }
+
+    .category-filter-content span {
+        flex: 1;
+        font-size: 0.9rem;
+        color: #495057;
+    }
+
+    .category-filter-content .badge {
+        background: #dee2e6;
+        color: #495057;
+        padding: 2px 8px;
+        border-radius: 20px;
+        font-size: 0.7rem;
+    }
+
+    .category-filter-item input:checked + .category-filter-content {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-color: #667eea;
+    }
+
+    .category-filter-item input:checked + .category-filter-content i,
+    .category-filter-item input:checked + .category-filter-content span,
+    .category-filter-item input:checked + .category-filter-content .badge {
+        color: white;
+        background: rgba(255,255,255,0.2);
+    }
+
+    .category-filter-item:hover .category-filter-content {
+        transform: translateX(3px);
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    /* Чипы категорий в карточках */
+    .category-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 3px 8px;
+        background: linear-gradient(135deg, #667eea20 0%, #764ba220 100%);
+        color: #667eea;
+        border-radius: 12px;
+        font-size: 0.7rem;
+        font-weight: 500;
+        margin-right: 5px;
+        margin-bottom: 5px;
+    }
+
+    .category-chip i {
+        font-size: 0.7rem;
+    }
+
+    .category-chip-more {
+        display: inline-flex;
+        align-items: center;
+        padding: 3px 8px;
+        background: #f8f9fa;
+        color: #6c757d;
+        border-radius: 12px;
+        font-size: 0.7rem;
+    }
+
+    /* Анимации */
+    .card-hover {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .card-hover:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    }
+
+    @media (max-width: 768px) {
+        .category-filter-content {
+            padding: 6px 10px;
+        }
+
+        .category-filter-content span {
+            font-size: 0.8rem;
+        }
+    }
+</style>
+
+<script>
+    // Автоматическая отправка формы при изменении чекбоксов
+    document.querySelectorAll('.category-filter-item input').forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            document.getElementById('filter-form').submit();
+        });
+    });
+
+    // Автоматическая отправка при изменении select
+    const priceSelect = document.querySelector('#id_price');
+    if (priceSelect) {
+        priceSelect.addEventListener('change', function() {
+            document.getElementById('filter-form').submit();
+        });
+    }
+
+    // Отправка при вводе поиска с задержкой
+    const searchInput = document.querySelector('#id_search');
+    let timeout;
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => {
+                document.getElementById('filter-form').submit();
+            }, 500);
+        });
+    }
+</script>
 {% endblock %}
