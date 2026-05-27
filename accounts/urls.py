@@ -12,4 +12,7 @@ urlpatterns = [
     path('top-up/', views.top_up_balance, name='top_up_balance'),
     path('author/<int:user_id>/', views.author_detail, name='author_detail'),
     path('become-author/', views.become_author, name='become_author'),
+    path('password-reset/', views.password_reset_request, name='password_reset'),
+    path('password-reset/done/', views.password_reset_done, name='password_reset_done'),
+    path('password-reset-confirm/<str:token>/', views.password_reset_confirm, name='password_reset_confirm'),
 ]

@@ -8,6 +8,13 @@ SECRET_KEY = 'django-insecure-8x!q6@2k#9m&7n$5p%3r^1t*y(u)i*o-w=e+r+t+y*u*i*o-p'
 DEBUG = True
 ALLOWED_HOSTS = ['*']
 
+EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
+EMAIL_BACKEND_TYPE = 'file'
+EMAIL_FILE_PATH = BASE_DIR / 'emails'
+EMAIL_FILE_FORMAT = 'txt'
+PASSWORD_RESET_TIMEOUT = 86400
+
+
 # Приложения
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -54,16 +61,13 @@ HANDLER404 = 'your_project.views.custom_404'
 HANDLER403 = 'your_project.views.custom_403'
 HANDLER500 = 'your_project.views.custom_500'
 # База данных
-if DEBUG:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
+
+DATABASES = {
+            'default': {
+                'ENGINE': 'django.db.backends.sqlite3',
+                'NAME': BASE_DIR / 'db.sqlite3',
+            }
         }
-    }
-else:
-    import dj_database_url
-    DATABASES = {'default': dj_database_url.config(default=os.getenv('DATABASE_URL'))}
 
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},

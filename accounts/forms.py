@@ -46,3 +46,54 @@ class BalanceTopUpForm(forms.Form):
         if amount <= 0:
             raise forms.ValidationError('Сумма должна быть положительной')
         return amount
+
+
+class PasswordResetRequestForm(forms.Form):
+    """Форма запроса на восстановление пароля"""
+    email = forms.EmailField(
+        label='Email',
+        widget=forms.EmailInput(attrs={
+            'class': 'form-control form-control-lg',
+            'placeholder': 'Введите ваш email',
+            'autocomplete': 'email'
+        })
+    )
+
+    def clean_email(self):
+        email = self.cleaned_data['email']
+        if not User.objects.filter(email=email).exists():
+            raise forms.ValidationError('Пользователь с таким email не найден')
+        return email
+
+
+class PasswordResetConfirmForm(forms.Form):
+    """Форма установки нового пароля"""
+    new_password1 = forms.CharField(
+        label='Новый пароль',
+        widget=forms.PasswordInput(attrs={
+            'class': 'form-control form-control-lg',
+            'placeholder': 'Введите новый пароль',
+            'autocomplete': 'new-password'
+        })
+    )
+    new_password2 = forms.CharField(
+        label='Подтверждение пароля',
+        widget=forms.PasswordInput(attrs={
+            'class': 'form-control form-control-lg',
+            'placeholder': 'Подтвердите новый пароль',
+            'autocomplete': 'new-password'
+        })
+    )
+
+    def clean(self):
+        cleaned_data = super().clean()
+        password1 = cleaned_data.get('new_password1')
+        password2 = cleaned_data.get('new_password2')
+
+        if password1 and password2 and password1 != password2:
+            raise forms.ValidationError('Пароли не совпадают')
+
+        if password1 and len(password1) < 8:
+            raise forms.ValidationError('Пароль должен содержать минимум 8 символов')
+
+        return cleaned_data
