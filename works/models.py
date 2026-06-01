@@ -133,13 +133,26 @@ class Purchase(models.Model):
             raise ValidationError("Автор не может купить свою работу")
         if Purchase.objects.filter(user=self.user, work=self.work).exists():
             raise ValidationError("Вы уже приобрели эту работу")
+        amount_decimal = Decimal(str(self.amount))
+        if self.user.profile.balance < amount_decimal:
+            raise ValidationError("Недостаточно средств")
 
     def save(self, *args, **kwargs):
-        from decimal import Decimal
+        """
+        Переопределяем save для автоматического расчета комиссии и списания средств
+        """
         if not self.pk:
+            amount_decimal = Decimal(str(self.amount))
             commission_rate = Decimal('0.10')
-            self.commission = self.amount * commission_rate
-            self.author_share = self.amount - self.commission
-            self.user.profile.deduct_balance(self.amount)
+
+            # Расчет комиссии и доли автора
+            self.commission = amount_decimal * commission_rate
+            self.author_share = amount_decimal - self.commission
+
+            # Списание с покупателя
+            self.user.profile.deduct_balance(amount_decimal)
+
+            # Начисление автору
             self.work.author.profile.add_balance(self.author_share)
+
         super().save(*args, **kwargs)

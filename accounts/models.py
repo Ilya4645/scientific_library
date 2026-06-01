@@ -2,6 +2,7 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.core.exceptions import ValidationError
 from django.utils import timezone
+from decimal import Decimal
 
 
 class User(AbstractUser):
@@ -21,6 +22,24 @@ class User(AbstractUser):
     def __str__(self):
         return f"{self.username} ({self.get_role_display()})"
 
+    def add_balance(self, amount):
+        """Пополнение баланса"""
+        amount_decimal = Decimal(str(amount))
+        if amount_decimal < 0:
+            raise ValidationError("Сумма не может быть отрицательной")
+        self.balance += amount_decimal
+        self.save()
+
+    def deduct_balance(self, amount):
+        """Списание с баланса"""
+        amount_decimal = Decimal(str(amount))
+        if amount_decimal < 0:
+            raise ValidationError("Сумма не может быть отрицательной")
+        if self.balance < amount_decimal:
+            raise ValidationError("Недостаточно средств")
+        self.balance -= amount_decimal
+        self.save()
+
     def can_publish(self):
         """Может ли пользователь публиковать работы"""
         return self.role in ['author', 'moderator', 'admin']
@@ -31,6 +50,20 @@ class User(AbstractUser):
     def clean(self):
         if self.username and len(self.username) < 3:
             raise ValidationError({'username': 'Имя пользователя должно содержать минимум 3 символа'})
+
+    def get_total_downloads(self):
+        """Получить общее количество скачиваний всех одобренных работ автора"""
+        from works.models import Work
+        from django.db.models import Sum
+        total = Work.objects.filter(
+            author=self,
+            moderation_status='approved'
+        ).aggregate(total=Sum('downloads_count'))['total']
+        return total or 0
+
+    def get_approved_works_count(self):
+        """Получить количество одобренных работ"""
+        return self.works.filter(moderation_status='approved').count()
 
 
 class UserProfile(models.Model):
@@ -50,20 +83,43 @@ class UserProfile(models.Model):
 
     def add_balance(self, amount):
         """Пополнение баланса"""
+        # Конвертируем в Decimal
+        if not isinstance(amount, Decimal):
+            amount = Decimal(str(amount))
+
         if amount < 0:
             raise ValidationError("Сумма не может быть отрицательной")
-        self.balance += amount
-        self.save()
+
+        # Обновляем баланс
+        self.balance = Decimal(str(self.balance)) + amount
+        self.save(update_fields=['balance'])
 
     def deduct_balance(self, amount):
         """Списание с баланса"""
+        # Конвертируем в Decimal
+        if not isinstance(amount, Decimal):
+            amount = Decimal(str(amount))
+
         if amount < 0:
             raise ValidationError("Сумма не может быть отрицательной")
-        if self.balance < amount:
+
+        current_balance = Decimal(str(self.balance))
+        if current_balance < amount:
             raise ValidationError("Недостаточно средств")
-        self.balance -= amount
-        self.save()
+
+        self.balance = current_balance - amount
+        self.save(update_fields=['balance'])
 
     def clean(self):
         if self.balance < 0:
             raise ValidationError({'balance': 'Баланс не может быть отрицательным'})
+
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+
+@receiver(post_save, sender=User)
+def create_user_profile(sender, instance, created, **kwargs):
+    """Создает профиль при создании нового пользователя"""
+    if created:
+        UserProfile.objects.get_or_create(user=instance)
+

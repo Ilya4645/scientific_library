@@ -8,6 +8,7 @@ from .models import Work, Purchase, Category
 from .forms import WorkCreateForm, WorkFilterForm
 from accounts.decorators import role_required
 from accounts.models import User
+from decimal import Decimal
 import os
 import mimetypes
 from django.http import StreamingHttpResponse, HttpResponse, Http404
@@ -271,6 +272,7 @@ def purchase_work(request, work_id):
 
     if request.method == 'POST':
         try:
+            amount_decimal = Decimal(str(work.price))
             Purchase.objects.create(
                 user=request.user,
                 work=work,
