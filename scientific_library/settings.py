@@ -1,27 +1,24 @@
 import os
 from pathlib import Path
-from dotenv import load_dotenv
 
-load_dotenv()
 BASE_DIR = Path(__file__).resolve().parent.parent
-SECRET_KEY = 'django-insecure-8x!q6@2k#9m&7n$5p%3r^1t*y(u)i*o-w=e+r+t+y*u*i*o-p'
-DEBUG = True
-ALLOWED_HOSTS = ['*']
 
-EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
-EMAIL_BACKEND_TYPE = 'file'
-EMAIL_FILE_PATH = BASE_DIR / 'emails'
-EMAIL_FILE_FORMAT = 'txt'
-PASSWORD_RESET_TIMEOUT = 86400
+# SECURITY WARNING: keep the secret key used in production secret!
+SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-your-secret-key-here')
 
+# SECURITY WARNING: don't run with debug turned on in production!
+DEBUG = False
 
-# Приложения
+ALLOWED_HOSTS = ['*', '.pythonanywhere.com', 'scientific_library.pythonanywhere.com']
+
+# Application definition
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
+    'whitenoise.runserver_nostatic',
     'django.contrib.staticfiles',
     'accounts',
     'works',
@@ -30,10 +27,11 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # Для статики
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.auth.middleware.AuthMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
@@ -57,18 +55,16 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'scientific_library.wsgi.application'
-HANDLER404 = 'your_project.views.custom_404'
-HANDLER403 = 'your_project.views.custom_403'
-HANDLER500 = 'your_project.views.custom_500'
-# База данных
 
+# Database - SQLite для PythonAnywhere
 DATABASES = {
-            'default': {
-                'ENGINE': 'django.db.backends.sqlite3',
-                'NAME': BASE_DIR / 'db.sqlite3',
-            }
-        }
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
+}
 
+# Password validation
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
     {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
@@ -76,30 +72,39 @@ AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
+# Internationalization
 LANGUAGE_CODE = 'ru-ru'
 TIME_ZONE = 'Europe/Moscow'
 USE_I18N = True
 USE_TZ = True
 
-STATIC_URL = 'static/'
-STATICFILES_DIRS = [BASE_DIR / 'static']
+# Static files (CSS, JavaScript, Images)
+STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATICFILES_DIRS = [BASE_DIR / 'static']
 
+# WhiteNoise для статики
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+# Media files
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-# Static files
-STATIC_URL = '/static/'
-STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-
+# Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+# Custom user model
 AUTH_USER_MODEL = 'accounts.User'
 
+# Login/Logout URLs
 LOGIN_URL = 'accounts:login'
 LOGIN_REDIRECT_URL = 'index'
 LOGOUT_REDIRECT_URL = 'index'
 
-CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
-CRISPY_TEMPLATE_PACK = "bootstrap5"
+# Email settings
+EMAIL_BACKEND_TYPE = 'file'
+EMAIL_FILE_PATH = BASE_DIR / 'emails'
+
+os.makedirs(EMAIL_FILE_PATH, exist_ok=True)
+os.makedirs(STATIC_ROOT, exist_ok=True)
+os.makedirs(MEDIA_ROOT, exist_ok=True)
