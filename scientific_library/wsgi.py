@@ -8,6 +8,11 @@ https://docs.djangoproject.com/en/5.2/howto/deployment/wsgi/
 """
 
 import os
+import sys
+
+# Путь к проекту
+project_path = '/home/ilya323/scientific-library'
+sys.path.insert(0, project_path)
 
 from django.core.wsgi import get_wsgi_application
 
