@@ -203,7 +203,7 @@ def my_works(request):
 
 @login_required
 def download_work(request, work_id):
-    """Скачивание работы - альтернативная версия"""
+    """Скачивание работы"""
     work = get_object_or_404(Work, id=work_id, moderation_status='approved')
 
     # Проверяем статус работы
